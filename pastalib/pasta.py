@@ -4,7 +4,7 @@ import abc, json
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Any, Literal, Optional, Sequence, cast, overload, Tuple
+from typing import Any, Literal, Optional, Sequence, Union, cast, overload, Tuple
 
 import transformers 
 from pastalib.utils import tokenizer_utils
@@ -49,7 +49,7 @@ class PASTA(abc.ABC):
         self, 
         model: Model, 
         tokenizer: Tokenizer, 
-        head_config: dict|list|None = None, 
+        head_config: Union(dict,list,None) = None, 
         alpha: float = 0.01, 
         scale_position: str = "exclude", 
     ):
@@ -92,7 +92,7 @@ class PASTA(abc.ABC):
         else:
             raise ValueError(f"Incorrect head config: {head_config}")
     
-    def _maybe_batch(self, text: str | StrSequence) -> StrSequence:
+    def _maybe_batch(self, text: Union(str,StrSequence)) -> StrSequence:
         """Batch the text if it is not already batched."""
         if isinstance(text, str):
             return [text]
@@ -100,8 +100,8 @@ class PASTA(abc.ABC):
 
     def token_ranges_from_batch(
         self,
-        strings: str | StrSequence,
-        substrings: str | StrSequence,
+        strings: Union(str, StrSequence),
+        substrings: Union(str,StrSequence),
         offsets_mapping: Sequence[TokenizerOffsetMapping],
         occurrence: int = 0,
     ) -> torch.Tensor:
@@ -231,8 +231,8 @@ class PASTA(abc.ABC):
 
     def inputs_from_batch(
         self, 
-        text: str | StrSequence,
-        tokenizer: Tokenizer|None = None,
+        text: Union(str,StrSequence) ,
+        tokenizer: Optional(Tokenizer) = None,
         device: Optional[Device] = None,
     ) -> tuple[ModelInput, Sequence[TokenizerOffsetMapping]]:
         """Precompute model inputs."""
@@ -252,7 +252,7 @@ class PASTA(abc.ABC):
         return inputs, offset_mapping
 
     @classmethod
-    def load_head_config(cls, file:str|Path):
+    def load_head_config(cls, file:Union(str,Path)):
         """Load the `head_config` from JSON file."""
         with open(file, "r") as f:
             head_config = json.load(f)
